@@ -1,49 +1,65 @@
 import os
 
-import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
+import requests
+from faiss import IndexFlatL2
+from langchain.document_loaders import PyPDFLoader
+from langchain.vectorstores import FAISS
+from langchain_community.docstore.in_memory import InMemoryDocstore
+from settings import EMBEDDINGS_BASE_URL, EMBEDDINGS_HEADERS, EMBEDDINGS_MODEL
 
 
-def load_texts(directory: str) -> list:
-    texts = []
-    for file in os.listdir(directory):
-        if file.endswith('.txt'):
-            with open(os.path.join(directory, file), 'r', encoding='utf8') as f:
-                texts.append((file, f.read()))
-    return texts
+def generate_embeddings(input_text: str) -> list[float]:
+    data = {'model': EMBEDDINGS_MODEL, 'input': input_text, 'dimensions': 1024}
+    try:
+        response = requests.post(
+            EMBEDDINGS_BASE_URL, headers=EMBEDDINGS_HEADERS, json=data
+        )
+        response.raise_for_status()
+        response = response.json().get('data', [])
+        return np.array([doc['embedding'] for doc in response], dtype=np.float32)
+    except requests.exceptions.RequestException as e:
+        print('Error while requesting embedding:', e)
+        return np.array([], dtype=np.float32)
 
 
-def create_embeddings(texts: list, model_name='all-MiniLM-L6-v2'):
-    model = SentenceTransformer(model_name)
-    embeddings = {}
-    for title, text in texts:
-        embeddings[title] = model.encode(text, convert_to_tensor=True)
-    return embeddings
+def load_data():
+    pdf_loader = PyPDFLoader(file_path='./data/regulations.pdf')
+    pdf_documents = (
+        pdf_loader.load() if os.path.exists('./data/regulations.pdf') else []
+    )
+    pdf_documents = [pdf_documents[0]]
+
+    documents_with_embeddings = []
+    for doc in pdf_documents:
+        embedding = generate_embeddings(doc.page_content)
+        if embedding.size > 0:
+            documents_with_embeddings.append(
+                {'text': doc.page_content, 'embedding': embedding}
+            )
+
+    return documents_with_embeddings
 
 
-def build_faiss_index(embeddings):
-    dimension = embeddings[next(iter(embeddings))].shape[0]
-    index = faiss.IndexFlatL2(dimension)
-    titles = list(embeddings.keys())
-    matrix = np.array([embeddings[title].numpy() for title in titles])
-    index.add(matrix)
-    return index, titles
+def build_index():
+    index_path = './data'
 
+    if os.path.exists(f'{index_path}/index.faiss'):
+        return FAISS.load_local(index_path)
+    else:
+        documents = load_data()
+        embeddings = np.array([doc['embedding'] for doc in documents], dtype=np.float32)
+        embeddings = np.vstack(embeddings)
 
-def search(query_embedding, index, titles, top_k=5) -> list:
-    distances, indices = index.search(np.array([query_embedding.numpy()]), top_k)
-    return [(titles[idx], distances[0][i]) for i, idx in enumerate(indices[0])]
+        index = IndexFlatL2(embeddings.shape[1])
+        index.add(embeddings)
 
+        faiss_index = FAISS(
+            embedding_function=generate_embeddings,
+            index=index,
+            docstore=InMemoryDocstore(),
+            index_to_docstore_id={},
+        )
+        faiss_index.save_local(index_path)
 
-if __name__ == '__main__':
-    wiki_texts = load_texts('./data/')
-    embeddings = create_embeddings(wiki_texts)
-
-    index, titles = build_faiss_index(embeddings)
-
-    query = 'Who won the 2020 Formula 1 World Championship?'
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    query_embedding = model.encode(query, convert_to_tensor=True)
-    results = search(query_embedding, index, titles)
-    print('Search results:', results)
+        return faiss_index
