@@ -7,12 +7,13 @@ To get started, you need to create a .env file of the form:
 
 ```txt
 OPENAI_API_KEY=<YOUR API KEY>
-EMBEDDINGS_BASE_URL=<YOUR BASE_URL FOR EMBEDDER>
-CHATGPT_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
+EMBEDDER_BASE_URL=<YOUR BASE_URL FOR EMBEDDER>
+GENERATOR_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
 ```
 
 After that, you need to build and run the Docker container:
 
 ```bash
-docker run
+docker build -t f1answers .
+docker run -p 8501:8501 f1answers
 ```

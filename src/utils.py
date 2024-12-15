@@ -6,12 +6,12 @@ from faiss import IndexFlatL2, read_index, write_index
 from pypdf import PdfReader
 from settings import (
     API_HEADERS,
-    CHATGPT_BASE_URL,
-    CHATGPT_MODEL,
-    CHATGPT_SYSTEM_PROMPT,
-    EMBEDDINGS_BASE_URL,
+    EMBEDDER_BASE_URL,
     EMBEDDINGS_MODEL,
     FAISS_INDEX_PATH,
+    GENERATOR_BASE_URL,
+    GENERATOR_MODEL,
+    GENERATOR_SYSTEM_PROMPT,
     PDF_DIR_PATH,
 )
 
@@ -20,7 +20,7 @@ def generate_embedding(input_text: str) -> np.ndarray:
     data = {'model': EMBEDDINGS_MODEL, 'input': input_text, 'dimensions': 1024}
 
     try:
-        response = requests.post(EMBEDDINGS_BASE_URL, headers=API_HEADERS, json=data)
+        response = requests.post(EMBEDDER_BASE_URL, headers=API_HEADERS, json=data)
         response.raise_for_status()
         embedding = response.json()['data'][0]['embedding']
         return np.array(embedding, dtype=np.float32)
@@ -79,15 +79,15 @@ def query_index(
 
 def generate_answer(context: str, question: str) -> str:
     data = {
-        'model': CHATGPT_MODEL,
+        'model': GENERATOR_MODEL,
         'messages': [
-            {'role': 'system', 'content': CHATGPT_SYSTEM_PROMPT},
+            {'role': 'system', 'content': GENERATOR_SYSTEM_PROMPT},
             {'role': 'user', 'content': f'Context: {context}\n\nQuestion: {question}'},
         ],
         'temperature': 0.7,
     }
     try:
-        response = requests.post(CHATGPT_BASE_URL, headers=API_HEADERS, json=data)
+        response = requests.post(GENERATOR_BASE_URL, headers=API_HEADERS, json=data)
         response.raise_for_status()
         return response.json()['choices'][0]['message']['content']
 
