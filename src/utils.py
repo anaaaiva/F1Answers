@@ -6,7 +6,14 @@ from faiss import IndexFlatL2
 from langchain_community.docstore.in_memory import InMemoryDocstore
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.vectorstores import FAISS
-from settings import EMBEDDINGS_BASE_URL, EMBEDDINGS_HEADERS, EMBEDDINGS_MODEL
+from langchain_openai import ChatOpenAI
+from settings import (
+    CHATGPT_SYSTEM_PROMPT,
+    EMBEDDINGS_BASE_URL,
+    EMBEDDINGS_HEADERS,
+    EMBEDDINGS_MODEL,
+    OPENAI_API_KEY,
+)
 
 
 def generate_embeddings(input_text: str) -> list[float]:
@@ -62,6 +69,11 @@ def build_index():
         faiss_index.save_local(index_path)
 
         return faiss_index
+
+
+def create_llm_chain():
+    llm = ChatOpenAI(model='gpt-4', temperature=0.7, openai_api_key=OPENAI_API_KEY)
+    return CHATGPT_SYSTEM_PROMPT | llm
 
 
 if __name__ == '__main__':
