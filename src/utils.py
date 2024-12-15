@@ -2,17 +2,18 @@ import os
 
 import numpy as np
 import requests
-from faiss import IndexFlatL2
-from langchain_community.docstore.in_memory import InMemoryDocstore
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_community.vectorstores import FAISS
+from faiss import IndexFlatL2, read_index, write_index
 from langchain_openai import ChatOpenAI
+from pypdf import PdfReader
 from settings import (
+    CHATGPT_MODEL,
     CHATGPT_SYSTEM_PROMPT,
     EMBEDDINGS_BASE_URL,
     EMBEDDINGS_HEADERS,
     EMBEDDINGS_MODEL,
+    FAISS_INDEX_PATH,
     OPENAI_API_KEY,
+    PDF_DIR_PATH,
 )
 
 
@@ -32,53 +33,44 @@ def generate_embedding(input_text: str) -> np.ndarray:
         return np.array([], dtype=np.float32)
 
 
-def load_data(file_path: str = './data/regulations.pdf') -> list[dict]:
-    if os.path.exists(file_path):
-        pdf_loader = PyPDFLoader(file_path=file_path)
-        pdf_documents = pdf_loader.load()
-        pdf_documents = [pdf_documents[0]]
-    else:
-        pdf_documents = []
-
+def load_data(pdf_dir_path: str = PDF_DIR_PATH) -> list[dict]:
     documents = []
-    for doc in pdf_documents:
-        embedding = generate_embedding(doc.page_content)
-        if embedding.size > 0:
-            documents.append({'text': doc.page_content, 'embedding': embedding})
+
+    for file in os.scandir(pdf_dir_path):
+        if file.name.endswith('.pdf'):
+            reader = PdfReader(file.path)
+
+            for page in reader.pages:
+                text = page.extract_text()
+
+                if text.strip():
+                    embedding = generate_embedding(text)
+
+                    if embedding.size > 0:
+                        documents.append({'text': text, 'embedding': embedding})
 
     return documents
 
 
-def build_index() -> FAISS:
-    folder_path = './data'
+def build_index(
+    pdf_dir_path: str = PDF_DIR_PATH, faiss_index_path: str = FAISS_INDEX_PATH
+) -> IndexFlatL2:
+    if os.path.exists(faiss_index_path):
+        return read_index(FAISS_INDEX_PATH)
 
-    if os.path.exists(f'{folder_path}/index.faiss'):
-        return FAISS.load_local(
-            folder_path=folder_path,
-            embeddings=generate_embedding,
-            allow_dangerous_deserialization=True,
-        )
     else:
-        documents = load_data()
+        documents = load_data(pdf_dir_path)
         embeddings = np.array([doc['embedding'] for doc in documents], dtype=np.float32)
-        embeddings = np.vstack(embeddings)
 
         index = IndexFlatL2(embeddings.shape[1])
         index.add(embeddings)
+        write_index(index, FAISS_INDEX_PATH)
 
-        faiss_index = FAISS(
-            embedding_function=generate_embedding,
-            index=index,
-            docstore=InMemoryDocstore({str(i): doc for i, doc in enumerate(documents)}),
-            index_to_docstore_id={str(i): i for i in range(len(documents))},
-        )
-        faiss_index.save_local(folder_path)
-
-        return faiss_index
+        return index
 
 
 def create_llm_chain():
-    llm = ChatOpenAI(model='gpt-4', temperature=0.7, openai_api_key=OPENAI_API_KEY)
+    llm = ChatOpenAI(model=CHATGPT_MODEL, openai_api_key=OPENAI_API_KEY)
     return CHATGPT_SYSTEM_PROMPT | llm
 
 
