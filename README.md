@@ -15,5 +15,5 @@ After that, you need to build and run the Docker container:
 
 ```bash
 docker build -t f1answers .
-docker run -p 8501:8501 f1answers
+docker run --name f1answers_bot -p 8501:8501 f1answers
 ```

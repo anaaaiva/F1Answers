@@ -10,7 +10,7 @@ API_HEADERS: dict = {
 }
 
 EMBEDDER_BASE_URL: str = os.getenv('EMBEDDER_BASE_URL')
-EMBEDDINGS_MODEL: str = 'text-embedding-3-small'
+EMBEDDER_MODEL: str = 'text-embedding-3-small'
 
 PDF_DIR_PATH: str = './data/'
 FAISS_INDEX_PATH: str = 'index.bin'

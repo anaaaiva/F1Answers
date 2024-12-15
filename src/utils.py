@@ -7,7 +7,7 @@ from pypdf import PdfReader
 from settings import (
     API_HEADERS,
     EMBEDDER_BASE_URL,
-    EMBEDDINGS_MODEL,
+    EMBEDDER_MODEL,
     FAISS_INDEX_PATH,
     GENERATOR_BASE_URL,
     GENERATOR_MODEL,
@@ -17,7 +17,7 @@ from settings import (
 
 
 def generate_embedding(input_text: str) -> np.ndarray:
-    data = {'model': EMBEDDINGS_MODEL, 'input': input_text, 'dimensions': 1024}
+    data = {'model': EMBEDDER_MODEL, 'input': input_text, 'dimensions': 1024}
 
     try:
         response = requests.post(EMBEDDER_BASE_URL, headers=API_HEADERS, json=data)
@@ -56,7 +56,8 @@ def build_index(
         documents = load_data(pdf_dir_path)
         embeddings = [generate_embedding(text) for text in documents]
         embeddings = np.array(
-            [embedding for embedding in embeddings if embedding.size], dtype=np.float32
+            [embedding for embedding in embeddings if embedding.size > 0],
+            dtype=np.float32,
         )
 
         index = IndexFlatL2(embeddings.shape[1])
