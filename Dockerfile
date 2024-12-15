@@ -9,4 +9,4 @@ COPY .env .env
 COPY src ./src
 COPY data ./data
 
-CMD ["streamlit run ./src/app.py"]
+CMD ["streamlit", "run", "./src/app.py"]

@@ -13,7 +13,7 @@ EMBEDDER_BASE_URL: str = os.getenv('EMBEDDER_BASE_URL')
 EMBEDDER_MODEL: str = 'text-embedding-3-small'
 
 PDF_DIR_PATH: str = './data/'
-FAISS_INDEX_PATH: str = 'index.bin'
+FAISS_INDEX_PATH: str = './index/index.bin'
 
 GENERATOR_BASE_URL: str = os.getenv('GENERATOR_BASE_URL')
 GENERATOR_MODEL: str = 'gpt-4o-mini'

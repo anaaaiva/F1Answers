@@ -14,6 +14,7 @@ GENERATOR_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
 After that, you need to build and run the Docker container:
 
 ```bash
-docker build -t f1answers .
-docker run --name f1answers_bot -p 8501:8501 f1answers
+docker build --rm -t f1answers:latest .
+docker volume create f1answers_index
+docker run --name f1answers_bot -p 8501:8501 -v f1answers_index:/app/index f1answers:latest
 ```
