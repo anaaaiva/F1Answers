@@ -1,6 +1,6 @@
 import streamlit as st
 from langchain.schema import HumanMessage
-from utils import build_index, create_llm_chain, generate_embeddings
+from utils import build_index, create_llm_chain, generate_embedding
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
     llm_chain = create_llm_chain()
 
     if query:
-        query_embedding = generate_embeddings(query)
+        query_embedding = generate_embedding(query)
 
         if query_embedding.size > 0:
             with st.spinner('Fetching relevant context...'):

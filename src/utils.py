@@ -16,17 +16,19 @@ from settings import (
 )
 
 
-def generate_embeddings(input_text: str) -> list[float]:
+def generate_embedding(input_text: str) -> np.ndarray:
     data = {'model': EMBEDDINGS_MODEL, 'input': input_text, 'dimensions': 1024}
+
     try:
         response = requests.post(
             EMBEDDINGS_BASE_URL, headers=EMBEDDINGS_HEADERS, json=data
         )
         response.raise_for_status()
-        response = response.json().get('data', [])
-        return np.array([doc['embedding'] for doc in response], dtype=np.float32)
+        embedding = response.json()['data'][0]['embedding']
+        return np.array(embedding, dtype=np.float32)
+
     except requests.exceptions.RequestException as e:
-        print('Error while requesting embedding:', e)
+        print(f'Error while generating embeddings: {e}')
         return np.array([], dtype=np.float32)
 
 
@@ -40,7 +42,7 @@ def load_data(file_path: str = './data/regulations.pdf') -> list[dict]:
 
     documents = []
     for doc in pdf_documents:
-        embedding = generate_embeddings(doc.page_content)
+        embedding = generate_embedding(doc.page_content)
         if embedding.size > 0:
             documents.append({'text': doc.page_content, 'embedding': embedding})
 
@@ -53,7 +55,7 @@ def build_index() -> FAISS:
     if os.path.exists(f'{folder_path}/index.faiss'):
         return FAISS.load_local(
             folder_path=folder_path,
-            embeddings=generate_embeddings,
+            embeddings=generate_embedding,
             allow_dangerous_deserialization=True,
         )
     else:
@@ -65,7 +67,7 @@ def build_index() -> FAISS:
         index.add(embeddings)
 
         faiss_index = FAISS(
-            embedding_function=generate_embeddings,
+            embedding_function=generate_embedding,
             index=index,
             docstore=InMemoryDocstore({str(i): doc for i, doc in enumerate(documents)}),
             index_to_docstore_id={str(i): i for i in range(len(documents))},
