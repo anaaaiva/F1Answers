@@ -1,37 +1,32 @@
 import streamlit as st
-from langchain.schema import HumanMessage
-from utils import build_index, create_llm_chain, generate_embedding
+from utils import (
+    build_index,
+    generate_answer,
+    generate_embedding,
+    load_data,
+    query_index,
+)
 
 
 def main():
     st.title('F1Answers Bot')
 
-    faiss_index = build_index()
-    retriever = faiss_index.as_retriever()
+    index = build_index()
+    documents = load_data()
 
     query = st.text_input('Enter your question about Formula 1:')
-    llm_chain = create_llm_chain()
 
     if query:
         query_embedding = generate_embedding(query)
 
         if query_embedding.size > 0:
             with st.spinner('Fetching relevant context...'):
-                results = retriever.invoke(query_embedding.tolist())
-                context = ' '.join([result.text for result in results])
+                context = query_index(index, query_embedding, documents)
 
-            if context:
-                messages = [
-                    HumanMessage(content=f'Context: {context}\n\nQuestion: {query}')
-                ]
+            with st.spinner('Generating answer...'):
+                answer = generate_answer(context, query)
 
-                with st.spinner('Generating answer...'):
-                    answer = llm_chain(messages).content
-
-                st.success('Generated Answer:')
-                st.write(answer)
-            else:
-                st.error('No relevant context found for your question.')
+            st.write(answer)
         else:
             st.error('Failed to generate embedding for the query.')
 

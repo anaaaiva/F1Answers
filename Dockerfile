@@ -7,4 +7,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY src .
 
-CMD ["streamlit run ./src/app.py --server.port=80"]
+CMD ["streamlit run ./src/app.py"]
