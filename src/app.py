@@ -10,22 +10,24 @@ def main():
     retriever = faiss_index.as_retriever()
 
     query = st.text_input('Enter your question about Formula 1:')
+    llm_chain = create_llm_chain()
 
     if query:
         query_embedding = generate_embeddings(query)
 
         if query_embedding.size > 0:
             with st.spinner('Fetching relevant context...'):
-                results = retriever.get_relevant_documents(query_embedding.tolist())
+                results = retriever.invoke(query_embedding.tolist())
                 context = ' '.join([result.text for result in results])
 
             if context:
-                llm_chain = create_llm_chain()
                 messages = [
                     HumanMessage(content=f'Context: {context}\n\nQuestion: {query}')
                 ]
+
                 with st.spinner('Generating answer...'):
                     answer = llm_chain(messages).content
+
                 st.success('Generated Answer:')
                 st.write(answer)
             else:

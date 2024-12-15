@@ -30,7 +30,7 @@ def generate_embeddings(input_text: str) -> list[float]:
         return np.array([], dtype=np.float32)
 
 
-def load_data(file_path: str = './data/regulations.pdf'):
+def load_data(file_path: str = './data/regulations.pdf') -> list[dict]:
     if os.path.exists(file_path):
         pdf_loader = PyPDFLoader(file_path=file_path)
         pdf_documents = pdf_loader.load()
@@ -47,11 +47,15 @@ def load_data(file_path: str = './data/regulations.pdf'):
     return documents
 
 
-def build_index():
-    index_path = './data'
+def build_index() -> FAISS:
+    folder_path = './data'
 
-    if os.path.exists(f'{index_path}/index.faiss'):
-        return FAISS.load_local(index_path)
+    if os.path.exists(f'{folder_path}/index.faiss'):
+        return FAISS.load_local(
+            folder_path=folder_path,
+            embeddings=generate_embeddings,
+            allow_dangerous_deserialization=True,
+        )
     else:
         documents = load_data()
         embeddings = np.array([doc['embedding'] for doc in documents], dtype=np.float32)
@@ -63,10 +67,10 @@ def build_index():
         faiss_index = FAISS(
             embedding_function=generate_embeddings,
             index=index,
-            docstore=InMemoryDocstore(),
-            index_to_docstore_id={},
+            docstore=InMemoryDocstore({str(i): doc for i, doc in enumerate(documents)}),
+            index_to_docstore_id={str(i): i for i in range(len(documents))},
         )
-        faiss_index.save_local(index_path)
+        faiss_index.save_local(folder_path)
 
         return faiss_index
 
