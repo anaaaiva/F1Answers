@@ -3,9 +3,9 @@ import os
 import numpy as np
 import requests
 from faiss import IndexFlatL2
-from langchain.document_loaders import PyPDFLoader
-from langchain.vectorstores import FAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
 from settings import EMBEDDINGS_BASE_URL, EMBEDDINGS_HEADERS, EMBEDDINGS_MODEL
 
 
@@ -23,22 +23,21 @@ def generate_embeddings(input_text: str) -> list[float]:
         return np.array([], dtype=np.float32)
 
 
-def load_data():
-    pdf_loader = PyPDFLoader(file_path='./data/regulations.pdf')
-    pdf_documents = (
-        pdf_loader.load() if os.path.exists('./data/regulations.pdf') else []
-    )
-    pdf_documents = [pdf_documents[0]]
+def load_data(file_path: str = './data/regulations.pdf'):
+    if os.path.exists(file_path):
+        pdf_loader = PyPDFLoader(file_path=file_path)
+        pdf_documents = pdf_loader.load()
+        pdf_documents = [pdf_documents[0]]
+    else:
+        pdf_documents = []
 
-    documents_with_embeddings = []
+    documents = []
     for doc in pdf_documents:
         embedding = generate_embeddings(doc.page_content)
         if embedding.size > 0:
-            documents_with_embeddings.append(
-                {'text': doc.page_content, 'embedding': embedding}
-            )
+            documents.append({'text': doc.page_content, 'embedding': embedding})
 
-    return documents_with_embeddings
+    return documents
 
 
 def build_index():
@@ -63,3 +62,7 @@ def build_index():
         faiss_index.save_local(index_path)
 
         return faiss_index
+
+
+if __name__ == '__main__':
+    build_index()
