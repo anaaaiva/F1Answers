@@ -32,7 +32,7 @@ def load_data(
 
     pdf_files = []
     for file in os.scandir(pdf_dir_path):
-        if file.name.endswith(".pdf"):
+        if file.name.endswith('.pdf'):
             pdf_files.append(file.name)
 
     pdf_loaders = [PyPDFLoader(file) for file in pdf_files]
@@ -44,5 +44,5 @@ def load_data(
 def load_data_test(
     wiki_search: List[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
 ) -> list[Document]:
-    all_loader = WikipediaLoader(query="Formula 1", load_max_docs=10)
+    all_loader = WikipediaLoader(query='Formula 1', load_max_docs=10)
     return all_loader.load()

@@ -11,13 +11,13 @@ def process_data(docs_all: list[Document]):
     splits = text_splitter.split_documents(docs_all)
     embeddings = CustomEmbeddings()
 
-    if os.path.exists("faiss_index"):
+    if os.path.exists('faiss_index'):
         vectorstore = FAISS.load_local(
-            "faiss_index", embeddings, allow_dangerous_deserialization=True
+            'faiss_index', embeddings, allow_dangerous_deserialization=True
         )
     else:
         vectorstore = FAISS.from_documents(splits, embeddings)
 
-        vectorstore.save_local("faiss_index")
+        vectorstore.save_local('faiss_index')
 
     return vectorstore

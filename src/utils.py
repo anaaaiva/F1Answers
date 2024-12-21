@@ -38,16 +38,16 @@ class CustomEmbeddings(Embeddings):
     def embed_query(self, text: str) -> List[float]:
         """Embed query text."""
         try:
-            data = {"model": self.embedder_model, "input": text, "dimensions": 1024}
+            data = {'model': self.embedder_model, 'input': text, 'dimensions': 1024}
             response = requests.post(
                 self.embedder_base_url, headers=self.api_headers, json=data
             )
             response.raise_for_status()
-            embedding = response.json()["data"][0]["embedding"]
+            embedding = response.json()['data'][0]['embedding']
             return np.array(embedding, dtype=np.float32)
 
         except requests.exceptions.RequestException as e:
-            print(f"Error while generating embeddings: {e}")
+            print(f'Error while generating embeddings: {e}')
             return np.array([], dtype=np.float32)
 
 
@@ -55,39 +55,39 @@ class CustomLLM(LLM):
     # TODO: добавить внутренние переменные GENERATOR_MODEL и тд. или оставить так...
     def _call(self, prompt: str, **kwargs: Any) -> str:
         data = {
-            "model": GENERATOR_MODEL,
-            "messages": [
-                {"role": "system", "content": GENERATOR_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
+            'model': GENERATOR_MODEL,
+            'messages': [
+                {'role': 'system', 'content': GENERATOR_SYSTEM_PROMPT},
+                {'role': 'user', 'content': prompt},
             ],
-            "temperature": 0.7,
+            'temperature': 0.7,
         }
         try:
             response = requests.post(GENERATOR_BASE_URL, headers=API_HEADERS, json=data)
             response.raise_for_status()
-            return response.json()["choices"][0]["message"]["content"]
+            return response.json()['choices'][0]['message']['content']
 
         except requests.exceptions.RequestException as e:
-            print(f"Error while generating answer: {e}")
-            return "Failed to generate an answer."
+            print(f'Error while generating answer: {e}')
+            return 'Failed to generate an answer.'
 
     @property
     def _llm_type(self) -> str:
         """Get the type of language model used by this chat model. Used for logging purposes only."""
-        return "custom"
+        return 'custom'
 
 
 def generate_embedding(input_text: str) -> np.ndarray:
-    data = {"model": EMBEDDER_MODEL, "input": input_text, "dimensions": 1024}
+    data = {'model': EMBEDDER_MODEL, 'input': input_text, 'dimensions': 1024}
 
     try:
         response = requests.post(EMBEDDER_BASE_URL, headers=API_HEADERS, json=data)
         response.raise_for_status()
-        embedding = response.json()["data"][0]["embedding"]
+        embedding = response.json()['data'][0]['embedding']
         return np.array(embedding, dtype=np.float32)
 
     except requests.exceptions.RequestException as e:
-        print(f"Error while generating embeddings: {e}")
+        print(f'Error while generating embeddings: {e}')
         return np.array([], dtype=np.float32)
 
 
@@ -95,7 +95,7 @@ def load_data(pdf_dir_path: str = PDF_DIR_PATH) -> list[str]:
     documents = []
 
     for file in os.scandir(pdf_dir_path):
-        if file.name.endswith(".pdf"):
+        if file.name.endswith('.pdf'):
             reader = PdfReader(file.path)
 
             for page in reader.pages:
@@ -136,27 +136,27 @@ def query_index(
 ) -> str:
     _, indices = index.search(query_embedding[np.newaxis, :], k=top_k)
     context = [documents[i] for i in indices[0] if i != -1]
-    return " ".join(context)
+    return ' '.join(context)
 
 
 def generate_answer(context: str, question: str) -> str:
     data = {
-        "model": GENERATOR_MODEL,
-        "messages": [
-            {"role": "system", "content": GENERATOR_SYSTEM_PROMPT},
-            {"role": "user", "content": f"Context: {context}\n\nQuestion: {question}"},
+        'model': GENERATOR_MODEL,
+        'messages': [
+            {'role': 'system', 'content': GENERATOR_SYSTEM_PROMPT},
+            {'role': 'user', 'content': f'Context: {context}\n\nQuestion: {question}'},
         ],
-        "temperature": 0.7,
+        'temperature': 0.7,
     }
     try:
         response = requests.post(GENERATOR_BASE_URL, headers=API_HEADERS, json=data)
         response.raise_for_status()
-        return response.json()["choices"][0]["message"]["content"]
+        return response.json()['choices'][0]['message']['content']
 
     except requests.exceptions.RequestException as e:
-        print(f"Error while generating answer: {e}")
-        return "Failed to generate an answer."
+        print(f'Error while generating answer: {e}')
+        return 'Failed to generate an answer.'
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     build_index()

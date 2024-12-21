@@ -15,9 +15,9 @@ def initialize_model(vectorstore):
 
     contextualize_q_prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", contextualize_q_system_prompt),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}"),
+            ('system', contextualize_q_system_prompt),
+            MessagesPlaceholder('chat_history'),
+            ('human', '{input}'),
         ]
     )
 
@@ -37,9 +37,9 @@ def initialize_model(vectorstore):
 
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", system_prompt),
-            MessagesPlaceholder("chat_history"),
-            ("human", "{input}"),
+            ('system', system_prompt),
+            MessagesPlaceholder('chat_history'),
+            ('human', '{input}'),
         ]
     )
 
