@@ -21,3 +21,11 @@ GENERATOR_SYSTEM_PROMPT = """
 You are a Formula 1 assistant. Use the following context to answer the user's
 question as precisely as possible:\n\n{context}\n\nQuestion: {question}\n\nAnswer:
 """
+
+WIKI_SEARCH = [
+    'Formula 1',
+    'Formula 1 drivers',
+    'Lewis Hamilton',
+    'Max Verstappen',
+    'Lando Norris',
+]
