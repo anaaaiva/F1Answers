@@ -1,13 +1,5 @@
 import streamlit as st
 from data_loading import load_data_test
-
-# from utils import (
-#     build_index,
-#     generate_answer,
-#     generate_embedding,
-#     load_data,
-#     query_index,
-# )
 from langchain_core.messages import HumanMessage
 from model_initialisation import initialize_model
 from processing import process_data
@@ -47,14 +39,12 @@ def main():
 
     if 'docs_all' not in st.session_state:
         # ОСТОРОЖНО, функция для теста, нужно использовать load_data
+        # и удалить папку faiss_index после изменения для загрузки нового индекса
         st.session_state.docs_all = load_data_test()
     if 'vectorstore' not in st.session_state:
         st.session_state.vectorstore = process_data(st.session_state.docs_all)
     if 'rag_chain' not in st.session_state:
         st.session_state.rag_chain = initialize_model(st.session_state.vectorstore)
-
-    # index = build_index()
-    # documents = load_data()
 
     query = st.text_input('Enter your question about Formula 1:')
     if st.button('Ask'):
@@ -92,7 +82,3 @@ def main():
             #     st.error('Failed to generate embedding for the query.')
     if st.sidebar.button('Display Chat History'):
         display_chat_history(st.session_state.chat_history)
-
-
-if __name__ == '__main__':
-    main()
