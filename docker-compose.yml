@@ -1,0 +1,15 @@
+name: f1answers
+
+services:
+  f1answers_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: f1answers_bot
+    ports:
+      - "8501:8501"
+    volumes:
+      - f1answers_index:/app/index
+
+volumes:
+  f1answers_index:

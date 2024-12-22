@@ -5,12 +5,12 @@ from langchain_community.document_loaders import PyPDFLoader, WikipediaLoader
 from langchain_community.document_loaders.merge import MergedDataLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents.base import Document
-from settings import PDF_DIR_PATH, WIKI_SEARCH
+from settings import PDF_DIR_PATH, WIKI_SEARCHS
 from utils import CustomEmbeddings
 
 
 def load_data(
-    wiki_search: list[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
+    wiki_searchs: list[str] = WIKI_SEARCHS, pdf_dir_path: str = PDF_DIR_PATH
 ) -> list[Document]:
     """
     Loads and returns a list of Documents from specified data sources.
@@ -29,18 +29,18 @@ def load_data(
         list[Document]: A list of Documents containing data loaded from Wikipedia and PDF files.
     """
     wiki_loaders = [
-        WikipediaLoader(query=search, load_max_docs=100) for search in wiki_search
+        WikipediaLoader(query=search, load_max_docs=100) for search in wiki_searchs
     ]
 
-    pdf_files = []
-    for file in os.scandir(pdf_dir_path):
-        if file.name.endswith('.pdf'):
-            pdf_files.append(file.name)
+    pdf_loaders = [
+        PyPDFLoader(file.path)
+        for file in os.scandir(pdf_dir_path)
+        if file.name.endswith('.pdf')
+    ]
 
-    pdf_loaders = [PyPDFLoader(file) for file in pdf_files]
-    all_loader = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
+    all_loaders = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
 
-    return all_loader.load()
+    return all_loaders.load()
 
 
 def prepare_data(documents: list[Document]) -> FAISS:

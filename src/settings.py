@@ -26,10 +26,10 @@ GENERATOR_SYSTEM_PROMPT: str = """
     {context}
 """
 
-WIKI_SEARCH = [
     'Formula 1',
     'Formula 1 drivers',
     'Lewis Hamilton',
     'Max Verstappen',
+WIKI_SEARCHS: list[str] = [
     'Lando Norris',
 ]

@@ -11,10 +11,20 @@ EMBEDDER_BASE_URL=<YOUR BASE_URL FOR EMBEDDER>
 GENERATOR_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
 ```
 
-After that, you need to build and run the Docker container:
+Then you need to build and run the Docker container:
 
 ```bash
-docker build --rm -t f1answers:latest .
-docker volume create f1answers_index
-docker run --name f1answers_bot -p 8501:8501 -v f1answers_index:/app/index f1answers:latest
+docker-compose up --build
+```
+
+After that, it can be run again without build:
+
+```bash
+docker-compose up
+```
+
+And to stop and remove the container:
+
+```bash
+docker-compose down --volumes
 ```
