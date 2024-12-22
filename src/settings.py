@@ -1,6 +1,14 @@
+import logging
 import os
 
 from dotenv import load_dotenv
+
+logging.basicConfig(
+    level=logging.ERROR,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[logging.StreamHandler()],
+)
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 OPENAI_API_KEY: str = os.getenv('OPENAI_API_KEY')
@@ -33,10 +41,10 @@ GENERATOR_SYSTEM_PROMPT: str = """
     {context}
 """
 
+WIKI_SEARCHS: list[str] = [
     'Formula 1',
     'Formula 1 drivers',
     'Lewis Hamilton',
     'Max Verstappen',
-WIKI_SEARCHS: list[str] = [
     'Lando Norris',
 ]

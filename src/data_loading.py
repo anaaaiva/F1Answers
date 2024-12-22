@@ -23,8 +23,7 @@ def load_data(
         if file.name.endswith('.pdf')
     ]
 
-    all_loaders = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
-    return all_loaders.load()
+    return MergedDataLoader(loaders=wiki_loaders + pdf_loaders).load()
 
 
 def prepare_data(documents: list[Document] = None) -> FAISS:

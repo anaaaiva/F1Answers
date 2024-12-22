@@ -7,8 +7,8 @@ To get started, you need to create a .env file of the form:
 
 ```txt
 OPENAI_API_KEY=<YOUR API KEY>
-EMBEDDER_BASE_URL=<YOUR BASE_URL FOR EMBEDDER>
-GENERATOR_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
+EMBEDDER_BASE_URL=https://gptunnel.ru/v1/embeddings
+GENERATOR_BASE_URL=https://gptunnel.ru/v1/chat/completions
 ```
 
 Then you need to build and run the Docker container:

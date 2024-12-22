@@ -14,6 +14,7 @@ from settings import (
     GENERATOR_BASE_URL,
     GENERATOR_MODEL,
     GENERATOR_SYSTEM_PROMPT,
+    logger,
 )
 
 
@@ -44,7 +45,7 @@ class CustomEmbeddings(Embeddings):
             return np.array(embedding, dtype=np.float32)
 
         except requests.exceptions.RequestException as e:
-            print(f'Error while generating embeddings: {e}')
+            logger.error(f'Error while generating embeddings: {e}')
             return np.array([], dtype=np.float32)
 
 
@@ -66,7 +67,7 @@ class CustomLLM(LLM):
             return response.json()['choices'][0]['message']['content']
 
         except requests.exceptions.RequestException as e:
-            print(f'Error while generating answer: {e}')
+            logger.error(f'Error while generating answer: {e}')
             return 'Failed to generate an answer.'
 
     @property
