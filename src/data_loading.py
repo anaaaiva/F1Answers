@@ -29,7 +29,7 @@ def load_data(
         list[Document]: A list of Documents containing data loaded from Wikipedia and PDF files.
     """
     wiki_loaders = [
-        WikipediaLoader(query=search, load_max_docs=100) for search in wiki_searchs
+        WikipediaLoader(query=search, load_max_docs=25) for search in wiki_searchs
     ]
 
     pdf_loaders = [
@@ -43,9 +43,7 @@ def load_data(
     return all_loaders.load()
 
 
-def prepare_data(documents: list[Document]) -> FAISS:
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    splits = text_splitter.split_documents(documents)
+def prepare_data(documents: list[Document] = None) -> FAISS:
     embeddings = CustomEmbeddings()
 
     if os.path.exists('faiss_index'):
@@ -53,8 +51,16 @@ def prepare_data(documents: list[Document]) -> FAISS:
             'faiss_index', embeddings, allow_dangerous_deserialization=True
         )
     else:
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=10000, chunk_overlap=2000
+        )
+        splits = text_splitter.split_documents(documents)
         vectorstore = FAISS.from_documents(splits, embeddings)
-
         vectorstore.save_local('faiss_index')
 
     return vectorstore
+
+
+if __name__ == '__main__':
+    documents = load_data()
+    prepare_data(documents)

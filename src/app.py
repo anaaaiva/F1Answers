@@ -1,5 +1,5 @@
 import streamlit as st
-from data_loading import load_data, prepare_data
+from data_loading import prepare_data
 from langchain_core.messages import HumanMessage
 from model_initialisation import initialize_model
 
@@ -36,20 +36,12 @@ def main():
         st.session_state.chat_history = []
         st.sidebar.success('Chat history cleared')
 
-    if 'documents' not in st.session_state:
-        st.session_state.documents = load_data()
-
-    if 'vectorstore' not in st.session_state:
-        st.session_state.vectorstore = prepare_data(st.session_state.documents)
-
-    if 'rag_chain' not in st.session_state:
-        st.session_state.rag_chain = initialize_model(st.session_state.vectorstore)
-
+    rag_chain = initialize_model(prepare_data(st.session_state.documents))
     query = st.text_input('Enter your question about Formula 1:')
 
     if st.button('Ask'):
         if query:
-            result = st.session_state.rag_chain.invoke(
+            result = rag_chain.invoke(
                 {'input': query, 'chat_history': st.session_state.chat_history}
             )
             answer = result['answer']
