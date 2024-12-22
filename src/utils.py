@@ -1,5 +1,3 @@
-from typing import Any, Dict, List
-
 import numpy as np
 import requests
 from langchain_core.embeddings import Embeddings
@@ -20,17 +18,17 @@ class CustomEmbeddings(Embeddings):
         self,
         embedder_model: str = EMBEDDER_MODEL,
         embedder_base_url: str = EMBEDDER_BASE_URL,
-        api_headers: Dict[str, str] = API_HEADERS,
+        api_headers: dict[str, str] = API_HEADERS,
     ):
         self.embedder_model = embedder_model
         self.embedder_base_url = embedder_base_url
         self.api_headers = api_headers
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
         """Embed search docs."""
         return [self.embed_query(text) for text in texts]
 
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text: str) -> list[float]:
         """Embed query text."""
         try:
             data = {'model': self.embedder_model, 'input': text, 'dimensions': 1024}
@@ -48,7 +46,7 @@ class CustomEmbeddings(Embeddings):
 
 class CustomLLM(LLM):
     # TODO: добавить внутренние переменные GENERATOR_MODEL и тд. или оставить так...
-    def _call(self, prompt: str, **kwargs: Any) -> str:
+    def _call(self, prompt: str, **kwargs) -> str:
         data = {
             'model': GENERATOR_MODEL,
             'messages': [

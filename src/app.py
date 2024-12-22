@@ -1,5 +1,5 @@
 import streamlit as st
-from data_loading import load_data_test
+from data_loading import load_data
 from langchain_core.messages import HumanMessage
 from model_initialisation import initialize_model
 from processing import process_data
@@ -13,7 +13,7 @@ def format_source(source):
     return f'**Title**: {title}\n**Sourse**: {url}\n'
 
 
-def display_chat_history(chat_history):
+def display_chat_history(chat_history: list):
     """Display the chat history."""
     if not chat_history:
         st.warning('No chat history to display.')
@@ -38,11 +38,11 @@ def main():
         st.sidebar.success('Chat history cleared.')
 
     if 'docs_all' not in st.session_state:
-        # ОСТОРОЖНО, функция для теста, нужно использовать load_data
-        # и удалить папку faiss_index после изменения для загрузки нового индекса
-        st.session_state.docs_all = load_data_test()
+        st.session_state.docs_all = load_data()
+
     if 'vectorstore' not in st.session_state:
         st.session_state.vectorstore = process_data(st.session_state.docs_all)
+
     if 'rag_chain' not in st.session_state:
         st.session_state.rag_chain = initialize_model(st.session_state.vectorstore)
 
@@ -68,17 +68,5 @@ def main():
 
             st.session_state.chat_history.extend([HumanMessage(content=query), answer])
 
-            # query_embedding = generate_embedding(query)
-
-            # if query_embedding.size > 0:
-            #     with st.spinner('Fetching relevant context...'):
-            #         context = query_index(index, query_embedding, documents)
-
-            #     with st.spinner('Generating answer...'):
-            #         answer = generate_answer(context, query)
-
-            #     st.write(answer)
-            # else:
-            #     st.error('Failed to generate embedding for the query.')
     if st.sidebar.button('Display Chat History'):
         display_chat_history(st.session_state.chat_history)

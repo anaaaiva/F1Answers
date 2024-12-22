@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 from langchain_community.document_loaders import PyPDFLoader, WikipediaLoader
 from langchain_community.document_loaders.merge import MergedDataLoader
@@ -8,7 +7,7 @@ from settings import PDF_DIR_PATH, WIKI_SEARCH
 
 
 def load_data(
-    wiki_search: List[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
+    wiki_search: list[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
 ) -> list[Document]:
     """
     Loads and returns a list of Documents from specified data sources.
@@ -20,7 +19,7 @@ def load_data(
     The data from both sources are combined using a MergedDataLoader to provide a unified list of documents.
 
     Args:
-        wiki_search (List[str]): A list of search queries to fetch data from Wikipedia.
+        wiki_search (list[str]): A list of search queries to fetch data from Wikipedia.
         pdf_dir_path (str): The path to the directory containing PDF files to load.
 
     Returns:
@@ -38,11 +37,4 @@ def load_data(
     pdf_loaders = [PyPDFLoader(file) for file in pdf_files]
     all_loader = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
 
-    return all_loader.load()
-
-
-def load_data_test(
-    wiki_search: List[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
-) -> list[Document]:
-    all_loader = WikipediaLoader(query='Formula 1', load_max_docs=10)
     return all_loader.load()
