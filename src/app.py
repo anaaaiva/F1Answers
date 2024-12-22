@@ -1,6 +1,6 @@
 import streamlit as st
 from data_loading import format_source, prepare_data
-from model_initialisation import initialize_model
+from utils import initialize_model
 
 
 def main():

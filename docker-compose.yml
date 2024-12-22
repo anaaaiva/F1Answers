@@ -2,6 +2,7 @@ name: f1answers
 
 services:
   f1answers_bot:
+    image: f1answers
     build:
       context: .
       dockerfile: Dockerfile

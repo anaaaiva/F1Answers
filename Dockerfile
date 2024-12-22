@@ -15,5 +15,4 @@ COPY src ./src
 COPY data ./data
 
 RUN python src/data_loading.py
-
-CMD ["streamlit", "run", "./src/app.py"]
+CMD ["python", "-m", "streamlit", "run", "./src/app.py"]
