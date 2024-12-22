@@ -13,7 +13,8 @@ from settings import (
 
 
 class CustomEmbeddings(Embeddings):
-    # TODO: убрать неизменяемые блоки в инициализации (типо api_headers)
+    """Custom embeddings class for document embedding using external API."""
+
     def __init__(
         self,
         embedder_model: str = EMBEDDER_MODEL,
@@ -25,11 +26,9 @@ class CustomEmbeddings(Embeddings):
         self.api_headers = api_headers
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        """Embed search docs."""
         return [self.embed_query(text) for text in texts]
 
     def embed_query(self, text: str) -> list[float]:
-        """Embed query text."""
         try:
             data = {'model': self.embedder_model, 'input': text, 'dimensions': 1024}
             response = requests.post(
@@ -45,7 +44,8 @@ class CustomEmbeddings(Embeddings):
 
 
 class CustomLLM(LLM):
-    # TODO: добавить внутренние переменные GENERATOR_MODEL и тд.
+    """Custom language model class for generating responses using external API."""
+
     def _call(self, prompt: str, **kwargs) -> str:
         data = {
             'model': GENERATOR_MODEL,
@@ -66,5 +66,5 @@ class CustomLLM(LLM):
 
     @property
     def _llm_type(self) -> str:
-        """Get the type of language model used by this chat model. Used for logging purposes only."""
+        """Return the type of language model used, for logging purposes only."""
         return 'custom'
