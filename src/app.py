@@ -1,10 +1,10 @@
 import streamlit as st
-from data_loading import load_data, process_data
+from data_loading import load_data, prepare_data
 from langchain_core.messages import HumanMessage
 from model_initialisation import initialize_model
 
 
-def format_source(source):
+def format_source(source) -> str:
     """Format the source information for better readability."""
     metadata = source.metadata
     title = metadata.get('title', 'Unknown Title')
@@ -12,7 +12,7 @@ def format_source(source):
     return f'**Title**: {title}\n**Sourse**: {url}\n'
 
 
-def display_chat_history(chat_history: list):
+def display_chat_history(chat_history: list) -> None:
     """Display the chat history."""
     if not chat_history:
         st.warning('No chat history to display.')
@@ -40,7 +40,7 @@ def main():
         st.session_state.documents = load_data()
 
     if 'vectorstore' not in st.session_state:
-        st.session_state.vectorstore = process_data(st.session_state.documents)
+        st.session_state.vectorstore = prepare_data(st.session_state.documents)
 
     if 'rag_chain' not in st.session_state:
         st.session_state.rag_chain = initialize_model(st.session_state.vectorstore)
@@ -60,12 +60,11 @@ def main():
             st.markdown('**Source(s):**')
             displayed_urls = set()
 
-            for doc in context:
-                metadata = doc.metadata
-                url = metadata.get('source', 'Unknown source')
+            for document in context:
+                url = document.metadata.get('source', 'Unknown source')
 
                 if url not in displayed_urls:
-                    st.markdown(format_source(doc))
+                    st.markdown(format_source(document))
                     displayed_urls.add(url)
 
             st.session_state.chat_history.extend([HumanMessage(content=query), answer])

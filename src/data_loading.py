@@ -43,7 +43,7 @@ def load_data(
     return all_loader.load()
 
 
-def process_data(documents: list[Document]) -> FAISS:
+def prepare_data(documents: list[Document]) -> FAISS:
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_documents(documents)
     embeddings = CustomEmbeddings()
