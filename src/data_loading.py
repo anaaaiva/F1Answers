@@ -5,7 +5,7 @@ from langchain_community.document_loaders import PyPDFLoader, WikipediaLoader
 from langchain_community.document_loaders.merge import MergedDataLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.documents.base import Document
-from settings import PDF_DIR_PATH, WIKI_SEARCHS
+from settings import FAISS_DIR_PATH, PDF_DIR_PATH, WIKI_SEARCHS
 from utils import CustomEmbeddings
 
 
@@ -46,17 +46,17 @@ def load_data(
 def prepare_data(documents: list[Document] = None) -> FAISS:
     embeddings = CustomEmbeddings()
 
-    if os.path.exists('faiss_index'):
+    if os.path.exists(FAISS_DIR_PATH):
         vectorstore = FAISS.load_local(
-            'faiss_index', embeddings, allow_dangerous_deserialization=True
+            FAISS_DIR_PATH, embeddings, allow_dangerous_deserialization=True
         )
     else:
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=10000, chunk_overlap=2000
+            chunk_size=10000, chunk_overlap=1000
         )
         splits = text_splitter.split_documents(documents)
         vectorstore = FAISS.from_documents(splits, embeddings)
-        vectorstore.save_local('faiss_index')
+        vectorstore.save_local(FAISS_DIR_PATH)
 
     return vectorstore
 

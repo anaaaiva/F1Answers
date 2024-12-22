@@ -36,7 +36,7 @@ def main():
         st.session_state.chat_history = []
         st.sidebar.success('Chat history cleared')
 
-    rag_chain = initialize_model(prepare_data(st.session_state.documents))
+    rag_chain = initialize_model(prepare_data())
     query = st.text_input('Enter your question about Formula 1:')
 
     if st.button('Ask'):
@@ -63,3 +63,7 @@ def main():
 
     if st.sidebar.button('Display chat history'):
         display_chat_history(st.session_state.chat_history)
+
+
+if __name__ == '__main__':
+    main()

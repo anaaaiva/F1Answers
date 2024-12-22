@@ -46,7 +46,7 @@ class CustomEmbeddings(Embeddings):
 
 class CustomLLM(LLM):
     # TODO: добавить внутренние переменные GENERATOR_MODEL и тд.
-    def _call(self, prompt: str) -> str:
+    def _call(self, prompt: str, **kwargs) -> str:
         data = {
             'model': GENERATOR_MODEL,
             'messages': [
