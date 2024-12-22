@@ -1,8 +1,7 @@
 import streamlit as st
-from data_loading import load_data
+from data_loading import load_data, process_data
 from langchain_core.messages import HumanMessage
 from model_initialisation import initialize_model
-from processing import process_data
 
 
 def format_source(source):
@@ -33,20 +32,21 @@ def main():
     if 'chat_history' not in st.session_state:
         st.session_state.chat_history = []
 
-    if st.sidebar.button('Clear Chat History'):
+    if st.sidebar.button('Clear chat history'):
         st.session_state.chat_history = []
-        st.sidebar.success('Chat history cleared.')
+        st.sidebar.success('Chat history cleared')
 
-    if 'docs_all' not in st.session_state:
-        st.session_state.docs_all = load_data()
+    if 'documents' not in st.session_state:
+        st.session_state.documents = load_data()
 
     if 'vectorstore' not in st.session_state:
-        st.session_state.vectorstore = process_data(st.session_state.docs_all)
+        st.session_state.vectorstore = process_data(st.session_state.documents)
 
     if 'rag_chain' not in st.session_state:
         st.session_state.rag_chain = initialize_model(st.session_state.vectorstore)
 
     query = st.text_input('Enter your question about Formula 1:')
+
     if st.button('Ask'):
         if query:
             result = st.session_state.rag_chain.invoke(
@@ -59,14 +59,16 @@ def main():
 
             st.markdown('**Source(s):**')
             displayed_urls = set()
+
             for doc in context:
                 metadata = doc.metadata
-                url = metadata.get('source', 'Unknown Source')
+                url = metadata.get('source', 'Unknown source')
+
                 if url not in displayed_urls:
                     st.markdown(format_source(doc))
                     displayed_urls.add(url)
 
             st.session_state.chat_history.extend([HumanMessage(content=query), answer])
 
-    if st.sidebar.button('Display Chat History'):
+    if st.sidebar.button('Display chat history'):
         display_chat_history(st.session_state.chat_history)

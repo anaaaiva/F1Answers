@@ -1,9 +1,12 @@
 import os
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, WikipediaLoader
 from langchain_community.document_loaders.merge import MergedDataLoader
+from langchain_community.vectorstores import FAISS
 from langchain_core.documents.base import Document
 from settings import PDF_DIR_PATH, WIKI_SEARCH
+from utils import CustomEmbeddings
 
 
 def load_data(
@@ -38,3 +41,20 @@ def load_data(
     all_loader = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
 
     return all_loader.load()
+
+
+def process_data(documents: list[Document]) -> FAISS:
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    splits = text_splitter.split_documents(documents)
+    embeddings = CustomEmbeddings()
+
+    if os.path.exists('faiss_index'):
+        vectorstore = FAISS.load_local(
+            'faiss_index', embeddings, allow_dangerous_deserialization=True
+        )
+    else:
+        vectorstore = FAISS.from_documents(splits, embeddings)
+
+        vectorstore.save_local('faiss_index')
+
+    return vectorstore
