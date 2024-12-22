@@ -61,6 +61,14 @@ def prepare_data(documents: list[Document] = None) -> FAISS:
     return vectorstore
 
 
+def format_source(source: Document) -> str:
+    """Format the source information for better readability."""
+    metadata = source.metadata
+    title = metadata.get('title', 'Unknown Title')
+    url = metadata.get('source', 'Unknown Source')
+    return f'**Title**: {title}\n**Source**: {url}\n\n'
+
+
 if __name__ == '__main__':
     documents = load_data()
     prepare_data(documents)
