@@ -1,12 +1,18 @@
-FROM python:3.11-slim
+FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt --target=/app/dependencies
 
-COPY .env .env
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY --from=builder /app/dependencies /usr/local/lib/python3.11/site-packages/
+
+COPY .env .
 COPY src ./src
 COPY data ./data
 
-CMD ["streamlit", "run", "./src/app.py"]
+RUN python src/data_loading.py
+CMD ["python", "-m", "streamlit", "run", "./src/app.py"]

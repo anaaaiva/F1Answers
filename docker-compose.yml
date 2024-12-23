@@ -1,0 +1,16 @@
+name: f1answers
+
+services:
+  f1answers_bot:
+    image: f1answers:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: f1answers_bot
+    ports:
+      - "8501:8501"
+    volumes:
+      - index:/app/faiss_index
+
+volumes:
+  index:

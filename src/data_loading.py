@@ -1,48 +1,58 @@
 import os
-from typing import List
 
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, WikipediaLoader
 from langchain_community.document_loaders.merge import MergedDataLoader
+from langchain_community.vectorstores import FAISS
 from langchain_core.documents.base import Document
-from settings import PDF_DIR_PATH, WIKI_SEARCH
+from settings import FAISS_DIR_PATH, PDF_DIR_PATH, WIKI_SEARCHS
+from utils import CustomEmbeddings
 
 
 def load_data(
-    wiki_search: List[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
+    wiki_searchs: list[str] = WIKI_SEARCHS, pdf_dir_path: str = PDF_DIR_PATH
 ) -> list[Document]:
-    """
-    Loads and returns a list of Documents from specified data sources.
-
-    This function retrieves data from two main sources:
-    1. Wikipedia: Searches for the specified queries and loads up to 100 documents per query.
-    2. PDFs: Reads all PDF files in the specified directory.
-
-    The data from both sources are combined using a MergedDataLoader to provide a unified list of documents.
-
-    Args:
-        wiki_search (List[str]): A list of search queries to fetch data from Wikipedia.
-        pdf_dir_path (str): The path to the directory containing PDF files to load.
-
-    Returns:
-        list[Document]: A list of Documents containing data loaded from Wikipedia and PDF files.
-    """
+    """Load data from Wikipedia and PDF files and return as a list of Documents."""
     wiki_loaders = [
-        WikipediaLoader(query=search, load_max_docs=100) for search in wiki_search
+        WikipediaLoader(query=search, load_max_docs=25) for search in wiki_searchs
     ]
 
-    pdf_files = []
-    for file in os.scandir(pdf_dir_path):
-        if file.name.endswith('.pdf'):
-            pdf_files.append(file.name)
+    pdf_loaders = [
+        PyPDFLoader(file.path)
+        for file in os.scandir(pdf_dir_path)
+        if file.name.endswith('.pdf')
+    ]
 
-    pdf_loaders = [PyPDFLoader(file) for file in pdf_files]
-    all_loader = MergedDataLoader(loaders=wiki_loaders + pdf_loaders)
-
-    return all_loader.load()
+    return MergedDataLoader(loaders=wiki_loaders + pdf_loaders).load()
 
 
-def load_data_test(
-    wiki_search: List[str] = WIKI_SEARCH, pdf_dir_path: str = PDF_DIR_PATH
-) -> list[Document]:
-    all_loader = WikipediaLoader(query='Formula 1', load_max_docs=10)
-    return all_loader.load()
+def prepare_data(documents: list[Document] = None) -> FAISS:
+    """Prepare data for retrieval by embedding documents with FAISS vector store."""
+    embeddings = CustomEmbeddings()
+
+    if os.path.exists(FAISS_DIR_PATH):
+        vectorstore = FAISS.load_local(
+            FAISS_DIR_PATH, embeddings, allow_dangerous_deserialization=True
+        )
+    else:
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=10000, chunk_overlap=1000
+        )
+        splits = text_splitter.split_documents(documents)
+        vectorstore = FAISS.from_documents(splits, embeddings)
+        vectorstore.save_local(FAISS_DIR_PATH)
+
+    return vectorstore
+
+
+def format_source(source: Document) -> str:
+    """Format the source information for better readability."""
+    metadata = source.metadata
+    title = metadata.get('title', 'Unknown Title')
+    url = metadata.get('source', 'Unknown Source')
+    return f'**Title**: {title}\n**Source**: {url}\n\n'
+
+
+if __name__ == '__main__':
+    documents = load_data()
+    prepare_data(documents)

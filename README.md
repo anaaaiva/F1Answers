@@ -7,14 +7,24 @@ To get started, you need to create a .env file of the form:
 
 ```txt
 OPENAI_API_KEY=<YOUR API KEY>
-EMBEDDER_BASE_URL=<YOUR BASE_URL FOR EMBEDDER>
-GENERATOR_BASE_URL=<YOUR BASE_URL FOR GENERATOR>
+EMBEDDER_BASE_URL=https://gptunnel.ru/v1/embeddings
+GENERATOR_BASE_URL=https://gptunnel.ru/v1/chat/completions
 ```
 
-After that, you need to build and run the Docker container:
+Then you need to build and run the Docker container:
 
 ```bash
-docker build --rm -t f1answers:latest .
-docker volume create f1answers_index
-docker run --name f1answers_bot -p 8501:8501 -v f1answers_index:/app/index f1answers:latest
+docker-compose up --build
+```
+
+After that, it can be run again without build:
+
+```bash
+docker-compose up
+```
+
+And to stop and remove the container:
+
+```bash
+docker-compose down --volumes
 ```
